@@ -1,0 +1,8 @@
+robot_ports:
+  leader: /dev/tty.usbserial-110
+  follower: /dev/tty.usbserial-130
+
+motions:
+  bow_baseline: motions/bow_baseline.csv
+  angry_bow: motions/bow_angry.csv
+  bluff: motions/bluff_fast_drop.csv
