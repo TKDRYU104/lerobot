@@ -1,0 +1,8 @@
+,wrist_roll.pos_change
+wrist_roll.pos_change,1.0
+gripper.pos_change,0.03354762887409922
+other_motors_total_change,0.024129372041258815
+elbow_flex.pos_change,0.014163723026821055
+shoulder_pan.pos_change,0.013171134775121121
+wrist_flex.pos_change,0.006767340550795372
+shoulder_lift.pos_change,-0.0036133422803124216

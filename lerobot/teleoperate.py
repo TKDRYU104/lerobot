@@ -80,6 +80,14 @@ def teleop_loop(
     while True:
         loop_start = time.perf_counter()
         action = teleop.get_action()
+        
+        # デッドゾーンの実装: wrist_rollの小さな変化を無視する
+        wrist_roll_key = "wrist_roll.pos"
+        if wrist_roll_key in action:
+            # 値の絶対値が閾値（5.0）未満なら0に設定
+            if abs(action[wrist_roll_key]) < 5.0:
+                action[wrist_roll_key] = 0.0
+        
         if display_data:
             observation = robot.get_observation()
             for obs, val in observation.items():

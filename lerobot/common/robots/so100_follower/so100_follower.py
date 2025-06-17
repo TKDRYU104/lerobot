@@ -143,7 +143,11 @@ class SO100Follower(Robot):
             for motor in self.bus.motors:
                 self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
                 # Set P_Coefficient to lower value to avoid shakiness (Default is 32)
-                self.bus.write("P_Coefficient", motor, 16)
+                if motor == "wrist_roll":
+                    # wrist_rollのP係数をさらに低く設定して応答性を下げる
+                    self.bus.write("P_Coefficient", motor, 4)  # 通常の1/4
+                else:
+                    self.bus.write("P_Coefficient", motor, 16)
                 # Set I_Coefficient and D_Coefficient to default value 0 and 32
                 self.bus.write("I_Coefficient", motor, 0)
                 self.bus.write("D_Coefficient", motor, 32)
