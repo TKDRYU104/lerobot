@@ -13,20 +13,21 @@
 # limitations under the License.
 
 """
-Simple script to control a robot from teleoperation.
+テレオペレーションスクリプト（wrist_roll完全無効化版）
+
+このスクリプトは、wrist_rollモーターを完全に無効化して、
+不要な回転を完全に防止します。
 
 Example:
 
 ```shell
-python -m lerobot.teleoperate \
-    --robot.type=so101_follower \
-    --robot.port=/dev/tty.usbmodem58760431541 \
-    --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30}}" \
-    --robot.id=black \
-    --teleop.type=so101_leader \
-    --teleop.port=/dev/tty.usbmodem58760431551 \
-    --teleop.id=blue \
-    --display_data=true
+python -m lerobot.teleoperate_wrist_disabled \
+    --robot.type=so100_follower \
+    --robot.port=/dev/tty.usbserial-130 \
+    --robot.id=blue \
+    --teleop.type=so100_leader \
+    --teleop.port=/dev/tty.usbserial-110 \
+    --teleop.id=blue
 ```
 """
 
@@ -62,7 +63,7 @@ from .common.teleoperators import gamepad, koch_leader, so100_leader, so101_lead
 
 
 @dataclass
-class TeleoperateConfig:
+class TeleoperateWristDisabledConfig:
     teleop: TeleoperatorConfig
     robot: RobotConfig
     # Limit the maximum frames per second.
@@ -77,9 +78,24 @@ def teleop_loop(
 ):
     display_len = max(len(key) for key in robot.action_features)
     start = time.perf_counter()
+    
+    print("=== wrist_roll完全無効化モード ===")
+    print("wrist_rollの値は常に0.0に固定されます")
+    print("=" * 40)
+    
     while True:
         loop_start = time.perf_counter()
         action = teleop.get_action()
+        
+        # wrist_rollを完全に無効化（常に0.0に設定）
+        wrist_roll_key = "wrist_roll.pos"
+        if wrist_roll_key in action:
+            original_value = action[wrist_roll_key]
+            action[wrist_roll_key] = 0.0
+            
+            # 元の値が0でない場合は警告表示
+            if abs(original_value) > 0.1:
+                print(f"wrist_roll無効化: {original_value:.2f} → 0.0")
         
         if display_data:
             observation = robot.get_observation()
@@ -101,7 +117,10 @@ def teleop_loop(
         print("\n" + "-" * (display_len + 10))
         print(f"{'NAME':<{display_len}} | {'NORM':>7}")
         for motor, value in action.items():
-            print(f"{motor:<{display_len}} | {value:>7.2f}")
+            if motor == wrist_roll_key:
+                print(f"{motor:<{display_len}} | {value:>7.2f} [DISABLED]")
+            else:
+                print(f"{motor:<{display_len}} | {value:>7.2f}")
         print(f"\ntime: {loop_s * 1e3:.2f}ms ({1 / loop_s:.0f} Hz)")
 
         if duration is not None and time.perf_counter() - start >= duration:
@@ -111,11 +130,11 @@ def teleop_loop(
 
 
 @draccus.wrap()
-def teleoperate(cfg: TeleoperateConfig):
+def teleoperate_wrist_disabled(cfg: TeleoperateWristDisabledConfig):
     init_logging()
     logging.info(pformat(asdict(cfg)))
     if cfg.display_data:
-        _init_rerun(session_name="teleoperation")
+        _init_rerun(session_name="teleoperation_wrist_disabled")
 
     teleop = make_teleoperator_from_config(cfg.teleop)
     robot = make_robot_from_config(cfg.robot)
@@ -135,4 +154,4 @@ def teleoperate(cfg: TeleoperateConfig):
 
 
 if __name__ == "__main__":
-    teleoperate()
+    teleoperate_wrist_disabled()

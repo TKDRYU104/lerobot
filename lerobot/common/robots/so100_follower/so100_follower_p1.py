@@ -34,13 +34,13 @@ from .config_so100_follower import SO100FollowerConfig
 logger = logging.getLogger(__name__)
 
 
-class SO100Follower(Robot):
+class SO100FollowerP1(Robot):
     """
-    [SO-100 Follower Arm](https://github.com/TheRobotStudio/SO-ARM100) designed by TheRobotStudio
+    SO-100 Follower with P coefficient = 1 for wrist_roll motor (minimum responsiveness)
     """
 
     config_class = SO100FollowerConfig
-    name = "so100_follower"
+    name = "so100_follower_p1"
 
     def __init__(self, config: SO100FollowerConfig):
         super().__init__(config)
@@ -144,9 +144,9 @@ class SO100Follower(Robot):
                 self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
                 # Set P_Coefficient to lower value to avoid shakiness (Default is 32)
                 if motor == "wrist_roll":
-                    # wrist_rollのP係数を2に設定（超低応答性）
-                    self.bus.write("P_Coefficient", motor, 2)
-                    print(f"wrist_roll P係数を2に設定しました")
+                    # wrist_rollのP係数を1に設定（最小応答性）
+                    self.bus.write("P_Coefficient", motor, 1)
+                    print(f"wrist_roll P係数を1に設定しました（最小応答性）")
                 else:
                     self.bus.write("P_Coefficient", motor, 16)
                 # Set I_Coefficient and D_Coefficient to default value 0 and 32

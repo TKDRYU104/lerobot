@@ -13,20 +13,21 @@
 # limitations under the License.
 
 """
-Simple script to control a robot from teleoperation.
+テレオペレーションスクリプト（P係数2版）
+
+このスクリプトは、wrist_rollのP係数を2に設定して、
+より強力な応答性低減による安定化を図ります。
 
 Example:
 
 ```shell
-python -m lerobot.teleoperate \
-    --robot.type=so101_follower \
-    --robot.port=/dev/tty.usbmodem58760431541 \
-    --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30}}" \
-    --robot.id=black \
-    --teleop.type=so101_leader \
-    --teleop.port=/dev/tty.usbmodem58760431551 \
-    --teleop.id=blue \
-    --display_data=true
+python -m lerobot.teleoperate_p2 \
+    --robot.type=so100_follower \
+    --robot.port=/dev/tty.usbserial-130 \
+    --robot.id=blue \
+    --teleop.type=so100_leader \
+    --teleop.port=/dev/tty.usbserial-110 \
+    --teleop.id=blue
 ```
 """
 
@@ -62,7 +63,7 @@ from .common.teleoperators import gamepad, koch_leader, so100_leader, so101_lead
 
 
 @dataclass
-class TeleoperateConfig:
+class TeleoperateP2Config:
     teleop: TeleoperatorConfig
     robot: RobotConfig
     # Limit the maximum frames per second.
@@ -77,6 +78,12 @@ def teleop_loop(
 ):
     display_len = max(len(key) for key in robot.action_features)
     start = time.perf_counter()
+    
+    print("=== P係数2版テレオペレーション ===")
+    print("wrist_rollのP係数: 2（超低応答性）")
+    print("他のモーターのP係数: 16（標準）")
+    print("=" * 40)
+    
     while True:
         loop_start = time.perf_counter()
         action = teleop.get_action()
@@ -101,7 +108,10 @@ def teleop_loop(
         print("\n" + "-" * (display_len + 10))
         print(f"{'NAME':<{display_len}} | {'NORM':>7}")
         for motor, value in action.items():
-            print(f"{motor:<{display_len}} | {value:>7.2f}")
+            if motor == "wrist_roll.pos":
+                print(f"{motor:<{display_len}} | {value:>7.2f} [P=2]")
+            else:
+                print(f"{motor:<{display_len}} | {value:>7.2f}")
         print(f"\ntime: {loop_s * 1e3:.2f}ms ({1 / loop_s:.0f} Hz)")
 
         if duration is not None and time.perf_counter() - start >= duration:
@@ -111,11 +121,11 @@ def teleop_loop(
 
 
 @draccus.wrap()
-def teleoperate(cfg: TeleoperateConfig):
+def teleoperate_p2(cfg: TeleoperateP2Config):
     init_logging()
     logging.info(pformat(asdict(cfg)))
     if cfg.display_data:
-        _init_rerun(session_name="teleoperation")
+        _init_rerun(session_name="teleoperation_p2")
 
     teleop = make_teleoperator_from_config(cfg.teleop)
     robot = make_robot_from_config(cfg.robot)
@@ -135,4 +145,4 @@ def teleoperate(cfg: TeleoperateConfig):
 
 
 if __name__ == "__main__":
-    teleoperate()
+    teleoperate_p2()

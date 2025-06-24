@@ -34,13 +34,13 @@ from .config_so100_follower import SO100FollowerConfig
 logger = logging.getLogger(__name__)
 
 
-class SO100Follower(Robot):
+class SO100FollowerP2(Robot):
     """
-    [SO-100 Follower Arm](https://github.com/TheRobotStudio/SO-ARM100) designed by TheRobotStudio
+    SO-100 Follower with P coefficient = 2 for wrist_roll motor
     """
 
     config_class = SO100FollowerConfig
-    name = "so100_follower"
+    name = "so100_follower_p2"
 
     def __init__(self, config: SO100FollowerConfig):
         super().__init__(config)
